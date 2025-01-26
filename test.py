@@ -248,132 +248,6 @@
 
 
 
-
-
-
-
-
-
-# # ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-# #transition code
-
-# import math
-# import pygame
-# from opensimplex import OpenSimplex
-
-# # Initialize Pygame
-# pygame.init()
-# simplex = OpenSimplex(seed=42)
-
-# # Screen settings
-# SCREEN_WIDTH, SCREEN_HEIGHT = 1200, 600
-# screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-# pygame.display.set_caption("Planet Habitability Simulation")
-# clock = pygame.time.Clock()
-
-# # Colors
-# WHITE = (255, 255, 255)
-# BLUE = (70, 130, 180)  # Water
-# GREEN = (34, 139, 34)  # Dense plants
-# LIGHT_GREEN = (144, 238, 144)  # Sparse plants
-# BROWN = (139, 69, 19)  # Dry areas
-# BLACK = (0, 0, 0)
-
-# # Font
-# font = pygame.font.Font(None, 30)
-
-# # Independent variables (sliders)
-# variables = {
-#     "rainfall": 50,  # Slider for rainfall (%)
-#     "plant_density": 50,  # Slider for plant density (%)
-# }
-
-# # Sliders configuration
-# sliders = [
-#     {"x": 50, "y": 100, "width": 300, "var": "rainfall", "label": "Rainfall (%)"},
-#     {"x": 50, "y": 200, "width": 300, "var": "plant_density", "label": "Plant Density (%)"},
-# ]
-
-# # Helper function to draw sliders
-# def draw_slider(x, y, width, value, label):
-#     value = max(0, min(100, value))
-#     pygame.draw.rect(screen, WHITE, (x, y + 3, width, 6))  # Background bar
-#     handle_x = x + int((value / 100) * width)
-#     pygame.draw.circle(screen, (224, 180, 74), (handle_x, y + 5), 8)  # Slider knob
-#     text = font.render(f"{label}: {value:.2f}", True, WHITE)
-#     screen.blit(text, (x, y - 25))
-
-# # Generate terrain color based on rainfall and plant density
-# def get_terrain_color(noise_value, rainfall, plant_density):
-#     if noise_value < -0.1:
-#         # Dry regions
-#         return BROWN
-#     elif noise_value < 0:
-#         # Sparse plant growth
-#         transition = rainfall / 100
-#         return (
-#             int(BROWN[0] * (1 - transition) + LIGHT_GREEN[0] * transition),
-#             int(BROWN[1] * (1 - transition) + LIGHT_GREEN[1] * transition),
-#             int(BROWN[2] * (1 - transition) + LIGHT_GREEN[2] * transition),
-#         )
-#     else:
-#         # Dense vegetation or water
-#         transition = plant_density / 100
-#         return (
-#             int(LIGHT_GREEN[0] * (1 - transition) + GREEN[0] * transition),
-#             int(LIGHT_GREEN[1] * (1 - transition) + GREEN[1] * transition),
-#             int(LIGHT_GREEN[2] * (1 - transition) + GREEN[2] * transition),
-#         )
-
-# # Draw the planet terrain
-# def draw_planet(radius, rainfall, plant_density):
-#     center_x, center_y = SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2
-#     for y in range(center_y - radius, center_y + radius, 3):
-#         for x in range(center_x - radius, center_x + radius, 3):
-#             distance = math.sqrt((x - center_x) ** 2 + (y - center_y) ** 2)
-#             if distance <= radius:
-#                 noise_value = simplex.noise2(x / 50, y / 50) + 0.5 * simplex.noise2(x / 30, y / 30) + 0.25 * simplex.noise2(x / 10, y / 10) 
-#                 # noise_value = simplex.noise2(x / 100, y / 100)
-#                 color = get_terrain_color(noise_value, rainfall, plant_density)
-#                 pygame.draw.rect(screen, color, (x, y, 3, 3))
-
-# # Main loop
-# running = True
-# dragging_slider = None
-
-# while running:
-#     screen.fill(BLACK)
-    
-#     for event in pygame.event.get():
-#         if event.type == pygame.QUIT:
-#             running = False
-#         elif event.type == pygame.MOUSEBUTTONDOWN:
-#             for slider in sliders:
-#                 x, y, width, var, _ = slider.values()
-#                 if x <= event.pos[0] <= x + width and y - 10 <= event.pos[1] <= y + 20:
-#                     dragging_slider = slider
-#         elif event.type == pygame.MOUSEBUTTONUP:
-#             dragging_slider = None
-#         elif event.type == pygame.MOUSEMOTION and dragging_slider:
-#             x, y, width, var, _ = dragging_slider.values()
-#             relative_x = event.pos[0] - x
-#             value = max(0, min(100, (relative_x / width) * 100))
-#             variables[var] = value
-
-#     # Draw the planet
-#     draw_planet(200, variables["rainfall"], variables["plant_density"])
-
-#     # Draw sliders
-#     for slider in sliders:
-#         draw_slider(slider["x"], slider["y"], slider["width"], variables[slider["var"]], slider["label"])
-
-#     pygame.display.flip()
-#     clock.tick(30)
-
-# pygame.quit()
-
-# ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 import math
 import random
 import pygame
@@ -383,6 +257,7 @@ import pickle
 import noise  # Adding the noise library for terrain generation
 from opensimplex import OpenSimplex
 import equations
+from functools import lru_cache
 
 # Initialize Pygame
 pygame.init()
@@ -452,70 +327,34 @@ center_x, center_y = SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2
 previous_terrain = {}
 
 dependent_vars = equations.calculate_dependent_variables(variables)
-plants_density = 50 #(dependent_vars["plants_density"])
-rainfall = 50 #(dependent_vars["rainfall_area"])
 
-def generate_terrain(x, y, radius):
-    if (x, y) in previous_terrain:
-        return previous_terrain[(x, y)]
-
-    # Calculate the terrain color only if not already cached
-    distance_from_center = math.sqrt((x - center_x)**2 + (y - center_y)**2)
-    if distance_from_center <= radius:
-        noise_value = simplex.noise2(x / 50, y / 50) + 0.5 * simplex.noise2(x / 30, y / 30) + 0.25 * simplex.noise2(x / 10, y / 10) 
-        # noise_value = simplex.noise2(x / 50, y / 50) + 0.5 * simplex.noise2(x / 30, y / 30) + 0.25 * simplex.noise2(x / 10, y / 10) + 0.125 * simplex.noise2(x / 5, y / 5) + 0.0625 * simplex.noise2(x / 2, y / 2)
-        
-        if noise_value < -0.1:
-            # color = (139, 69, 19)  # Brown (land)
-            color = (34, 139, 34) 
-            return color
-            # color = (62, 122, 77) # Green
-        elif noise_value < 0:
-            # color = (205, 133, 63) # Sandy Brown (desert)
-            # color = (144, 238, 144)  # Light green
-            transition = rainfall / 100
-            return (
-                int(BROWN[0] * (1 - transition) + LIGHT_GREEN[0] * transition),
-                int(BROWN[1] * (1 - transition) + LIGHT_GREEN[1] * transition),
-                int(BROWN[2] * (1 - transition) + LIGHT_GREEN[2] * transition),
-            )
-        else:
-            # color = (135, 206, 250)  # Water
-            # color = (205, 133, 63) # Sandy Brown (desert)
-            transition = plants_density / 100
-            return (
-                int(LIGHT_GREEN[0] * (1 - transition) + GREEN[0] * transition),
-                int(LIGHT_GREEN[1] * (1 - transition) + GREEN[1] * transition),
-                int(LIGHT_GREEN[2] * (1 - transition) + GREEN[2] * transition),
-            )   
-    previous_terrain[(x, y)] = color  # Cache the value
-    return previous_terrain[(x, y)]
-
-
+# rainfall = (dependent_vars["rainfall_intensity"]) / 100
+rainfall = 50 
 # Generate terrain color based on rainfall and plant density
+@lru_cache(maxsize=None)
 def get_terrain_color(noise_value, rainfall, plant_density):
     if noise_value < -0.1:
         # Dry regions
-        return BROWN
-        # transition = rainfall / 100
-        # return (
-        #     int(BROWN[0] * (1 - transition) + GREEN[0] * transition),
-        #     int(BROWN[1] * (1 - transition) + GREEN[1] * transition),
-        #     int(BROWN[2] * (1 - transition) + GREEN[2] * transition),
-        # )
-    elif noise_value < 0:
-        # Sparse plant growth
+        # return BROWN
         transition = rainfall / 100
         return (
             int(BROWN[0] * (1 - transition) + GREEN[0] * transition),
             int(BROWN[1] * (1 - transition) + GREEN[1] * transition),
             int(BROWN[2] * (1 - transition) + GREEN[2] * transition),
         )
+    elif noise_value < 0:
+        # Sparse plant growth
+        transition = rainfall / 100
+        return (
+            int(SANDY[0] * (1 - transition) + LIGHT_GREEN[0] * transition),
+            int(SANDY[1] * (1 - transition) + LIGHT_GREEN[1] * transition),
+            int(SANDY[2] * (1 - transition) + LIGHT_GREEN[2] * transition),
+        )
     else:
         # Dense vegetation or water
         transition = plant_density / 100
         return (
-            int(GREEN[0] * (1 - transition) + BLUE1[0] * transition),
+            int(BROWN[0] * (1 - transition) + BLUE1[0] * transition),
             int(BROWN[1] * (1 - transition) + BLUE1[1] * transition),
             int(BROWN[2] * (1 - transition) + BLUE1[2] * transition),
         )
@@ -618,10 +457,13 @@ while running:
 
     dependent_variables = equations.calculate_dependent_variables(variables)
     # rainfall = dependent_variables.get("rainfall_area", 50)  # Update rainfall
-    # plants_density = dependent_variables.get("plants_density", 50)  # Update plant density
-
-    # draw_planet(200, rainfall, plants_density)
-    draw_planet(200, variables["temperature"], variables["humidity"])
+    # plants_density = dependent_variables.get("plants_density")  # Update plant density
+    plants_density = max(0, min(100, dependent_variables.get("plants_density", 0))) #subtract pollution to make it darker based on pollution levels
+    # rainfall_area = max(0, min(100, dependent_variables.get("rainfall_area", 0)))
+    rainfall_area = dependent_variables.get("rainfall_area", 0) / 1000000000
+    print("rainfall area =", rainfall_area)
+    # draw_planet(200, plants_density, variables["humidity"])
+    draw_planet(200, plants_density, rainfall_area)
     # Draw sliders and dependent variables
     for slider in independent_sliders:
         draw_slider(slider["x"], slider["y"], slider["width"], variables[slider["var"]], slider["label"])
