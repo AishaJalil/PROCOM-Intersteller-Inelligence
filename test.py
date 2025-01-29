@@ -268,6 +268,8 @@ screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 pygame.display.set_caption("Planet Habitability Simulation")
 clock = pygame.time.Clock()
 
+terrain_cache = {}
+
 # Colors
 WHITE = (255, 255, 255)
 GREEN = (34, 139, 34)
@@ -359,16 +361,37 @@ def get_terrain_color(noise_value, rainfall, plant_density):
             int(BROWN[2] * (1 - transition) + BLUE1[2] * transition),
         )
 
+noise_map = {}
+
+def get_noise_value(x, y):
+    if (x, y) in noise_map:
+        return noise_map[(x, y)]
+    
+    noise_value = simplex.noise2(x / 50, y / 50) + 0.5 * simplex.noise2(x / 30, y / 30) + 0.25 * simplex.noise2(x / 10, y / 10)
+    
+    noise_map[(x, y)] = noise_value
+    return noise_value
+
 def draw_planet(radius, rainfall, plant_density):
     center_x, center_y = SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2
     for y in range(center_y - radius, center_y + radius, 3):
         for x in range(center_x - radius, center_x + radius, 3):
             distance = math.sqrt((x - center_x) ** 2 + (y - center_y) ** 2)
             if distance <= radius:
-                noise_value = simplex.noise2(x / 50, y / 50) + 0.5 * simplex.noise2(x / 30, y / 30) + 0.25 * simplex.noise2(x / 10, y / 10) 
-                # noise_value = simplex.noise2(x / 100, y / 100)
+                noise_value = get_noise_value(x, y)
                 color = get_terrain_color(noise_value, rainfall, plant_density)
                 pygame.draw.rect(screen, color, (x, y, 3, 3))
+
+# def draw_planet(radius, rainfall, plant_density):
+#     center_x, center_y = SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2
+#     for y in range(center_y - radius, center_y + radius, 3):
+#         for x in range(center_x - radius, center_x + radius, 3):
+#             distance = math.sqrt((x - center_x) ** 2 + (y - center_y) ** 2)
+#             if distance <= radius:
+#                 noise_value = simplex.noise2(x / 50, y / 50) + 0.5 * simplex.noise2(x / 30, y / 30) + 0.25 * simplex.noise2(x / 10, y / 10) 
+#                 # noise_value = simplex.noise2(x / 100, y / 100)
+#                 color = get_terrain_color(noise_value, rainfall, plant_density)
+#                 pygame.draw.rect(screen, color, (x, y, 3, 3))
 
 # Function to draw dynamic planet (centered and with proper size)
 def draw_dynamic_planet(variables):
