@@ -2,7 +2,7 @@
 import math
 import random
 import pygame
-from equations import calculate_dependent_variables  # Import your dependency logic
+from equations import calculate_dependent_variables 
 import os
 import pickle
 import noise  # Adding the noise library for terrain generation
@@ -14,7 +14,7 @@ from functools import lru_cache
 pygame.init()
 simplex = OpenSimplex(seed=42)
 # Screen settings
-SCREEN_WIDTH, SCREEN_HEIGHT = 1200, 600  # Maintain screen size as intended
+SCREEN_WIDTH, SCREEN_HEIGHT = 1200, 600 
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 pygame.display.set_caption("Planet Habitability Simulation")
 clock = pygame.time.Clock()
@@ -96,7 +96,7 @@ def get_terrain_color(noise_value, rainfall, plant_density):
             int(BROWN[2] * (1 - transition) + GREEN[2] * transition),
         )
     elif noise_value < 0:
-        # Sparse plant growth
+        # Sparse plant (plant growth kaam hai)
         transition = rainfall / 100
         return (
             int(SANDY[0] * (1 - transition) + LIGHT_GREEN[0] * transition),
@@ -104,7 +104,7 @@ def get_terrain_color(noise_value, rainfall, plant_density):
             int(SANDY[2] * (1 - transition) + LIGHT_GREEN[2] * transition),
         )
     else:
-        # Dense vegetation or water
+        # Dense vegetation or water (this controls water)
         transition = plant_density / 100
         return (
             int(BROWN[0] * (1 - transition) + BLUE1[0] * transition),
@@ -129,7 +129,7 @@ def draw_planet(radius, rainfall, plant_density):
         for x in range(center_x - radius, center_x + radius, 3):
             distance = math.sqrt((x - center_x) ** 2 + (y - center_y) ** 2)
             if distance <= radius:
-                noise_value = get_noise_value(x, y)
+                noise_value = get_noise_value(x, y) # performance improve karne ke liye 
                 color = get_terrain_color(noise_value, rainfall, plant_density)
                 pygame.draw.rect(screen, color, (x, y, 3, 3))
 
@@ -151,7 +151,7 @@ def draw_dynamic_planet(variables):
     planet_radius = min(SCREEN_WIDTH, SCREEN_HEIGHT) // 3  # Ensure planet fits within screen
 
     # Draw terrain in a circular shape to maintain planet appearance
-    for y in range(center_y - planet_radius, center_y + planet_radius, 3):  # Reduced step size for smoothness
+    for y in range(center_y - planet_radius, center_y + planet_radius, 3): 
         for x in range(center_x - planet_radius, center_x + planet_radius, 3):  # Reduced step size for smoothness
             # Calculate terrain color based on noise
             distance_from_center = math.sqrt((x - center_x)**2 + (y - center_y)**2)
