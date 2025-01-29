@@ -123,15 +123,47 @@ def get_noise_value(x, y):
     noise_map[(x, y)] = noise_value
     return noise_value
 
-def draw_planet(radius, rainfall, plant_density):
+#solar2
+def draw_planet(radius, rainfall, plant_density, solar_intensity):
     center_x, center_y = SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2
+
+    # Adjust glow intensity based on solar intensity (0 to 100 mapped to 100 to 255)
+    max_glow_alpha = min(255, 100 + int(solar_intensity * 1.55))
+
+    for i in range(radius + 10, radius + 40, 10):  # Gradient extends beyond the planet
+        alpha = max(0, max_glow_alpha - (i - radius) * 5)  # Fade effect
+        glow_color = (255, 240, 58, alpha)  # Light yellow with transparency
+        glow_surface = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
+        pygame.draw.circle(glow_surface, glow_color, (center_x, center_y), i)
+        screen.blit(glow_surface, (0, 0))
+
     for y in range(center_y - radius, center_y + radius, 3):
         for x in range(center_x - radius, center_x + radius, 3):
             distance = math.sqrt((x - center_x) ** 2 + (y - center_y) ** 2)
             if distance <= radius:
-                noise_value = get_noise_value(x, y) # performance improve karne ke liye 
+                noise_value = get_noise_value(x, y)  # Performance improvement
                 color = get_terrain_color(noise_value, rainfall, plant_density)
                 pygame.draw.rect(screen, color, (x, y, 3, 3))
+
+
+#solar 1
+# def draw_planet(radius, rainfall, plant_density):
+#     center_x, center_y = SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2
+
+#     for i in range(radius + 10, radius + 35, 8):  # Gradient extends beyond the planet
+#         alpha = max(0, 255 - (i - radius) * 5)  # Fade effect
+#         glow_color = (255, 240, 100, alpha)  # Light yellow with transparency
+#         glow_surface = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
+#         pygame.draw.circle(glow_surface, glow_color, (center_x, center_y), i)
+#         screen.blit(glow_surface, (0, 0))
+
+#     for y in range(center_y - radius, center_y + radius, 3):
+#         for x in range(center_x - radius, center_x + radius, 3):
+#             distance = math.sqrt((x - center_x) ** 2 + (y - center_y) ** 2)
+#             if distance <= radius:
+#                 noise_value = get_noise_value(x, y) # performance improve karne ke liye 
+#                 color = get_terrain_color(noise_value, rainfall, plant_density)
+#                 pygame.draw.rect(screen, color, (x, y, 3, 3))
 
 # def draw_planet(radius, rainfall, plant_density):
 #     center_x, center_y = SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2
@@ -235,9 +267,11 @@ while running:
     plants_density = max(0, min(100, dependent_variables.get("plants_density", 0))) #subtract pollution to make it darker based on pollution levels
     # rainfall_area = max(0, min(100, dependent_variables.get("rainfall_area", 0)))
     rainfall_area = dependent_variables.get("rainfall_area", 0) / 1000000000
-    print("rainfall area =", rainfall_area)
+    solar_intensity = dependent_variables.get("solar_intensity") / 100
+    # print("rainfall area =", rainfall_area)
+    print("Solar intensity =", solar_intensity)
     # draw_planet(200, plants_density, variables["humidity"])
-    draw_planet(200, plants_density, rainfall_area)
+    draw_planet(200, plants_density, rainfall_area, solar_intensity)
     # Draw sliders and dependent variables
     for slider in independent_sliders:
         draw_slider(slider["x"], slider["y"], slider["width"], variables[slider["var"]], slider["label"])
