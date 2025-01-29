@@ -20,7 +20,7 @@ pygame.display.set_caption("Planet Habitability Simulation")
 clock = pygame.time.Clock()
 
 terrain_cache = {}
-
+planet_radius = min(SCREEN_WIDTH, SCREEN_HEIGHT) // 3
 # Colors
 WHITE = (255, 255, 255)
 GREEN = (34, 139, 34)
@@ -123,19 +123,59 @@ def get_noise_value(x, y):
     noise_map[(x, y)] = noise_value
     return noise_value
 
+
+CLOUD_COLOR = (255, 255, 255, 60)  # White with transparency
+cloud_noise_offset = 0  # To animate clouds
+
+def draw_clouds(radius, cloud_density):
+    global cloud_noise_offset
+    cloud_surface = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
+
+    # Adjust the radius of the clouds based on cloud density
+    # adjusted_radius = radius * (cloud_density / 100)
+    adjusted_radius = min(radius * (cloud_density / 100), planet_radius)  # Ensure cloud radius doesn't exceed planet radius
+
+    # for y in range(center_y - adjusted_radius, center_y + adjusted_radius, 5):
+    for y in range(int(center_y - adjusted_radius), int(center_y + adjusted_radius), 5):
+        for x in range(int(center_x - adjusted_radius), int(center_x + adjusted_radius), 5):
+            distance = math.sqrt((x - center_x) ** 2 + (y - center_y) ** 2)
+            if distance <= adjusted_radius:
+                noise_value = simplex.noise2((x + cloud_noise_offset) / 80, (y + cloud_noise_offset) / 80)
+                if noise_value > 0.2:  # Adjust this threshold for cloud density
+                    pygame.draw.circle(cloud_surface, CLOUD_COLOR, (x, y), 5)
+
+    screen.blit(cloud_surface, (0, 0))
+    cloud_noise_offset += variables["wind_speed"] * 0.5  # Increasing speed effect
+
+# def draw_clouds(radius):
+#     global cloud_noise_offset
+#     cloud_surface = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
+
+#     for y in range(center_y - radius, center_y + radius, 5):
+#         for x in range(center_x - radius, center_x + radius, 5):
+#             distance = math.sqrt((x - center_x) ** 2 + (y - center_y) ** 2)
+#             if distance <= radius:
+#                 noise_value = simplex.noise2((x + cloud_noise_offset) / 80, (y + cloud_noise_offset) / 80)
+#                 if noise_value > 0.2:  # Adjust this threshold for cloud density
+#                     pygame.draw.circle(cloud_surface, CLOUD_COLOR, (x, y), 5)
+
+#     screen.blit(cloud_surface, (0, 0))
+#     cloud_noise_offset += 1 
+
+
 #solar2
-def draw_planet(radius, rainfall, plant_density, solar_intensity):
+def draw_planet(radius, rainfall, plant_density, solar_intensity, cloud_density):
     center_x, center_y = SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2
 
     # Adjust glow intensity based on solar intensity (0 to 100 mapped to 100 to 255)
     max_glow_alpha = min(255, 100 + int(solar_intensity * 1.55))
 
-    for i in range(radius + 10, radius + 40, 10):  # Gradient extends beyond the planet
-        alpha = max(0, max_glow_alpha - (i - radius) * 5)  # Fade effect
-        glow_color = (255, 240, 58, alpha)  # Light yellow with transparency
-        glow_surface = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
-        pygame.draw.circle(glow_surface, glow_color, (center_x, center_y), i)
-        screen.blit(glow_surface, (0, 0))
+    # for i in range(radius + 10, radius + 40, 10):  # Gradient extends beyond the planet
+    #     alpha = max(0, max_glow_alpha - (i - radius) * 5)  # Fade effect
+    #     glow_color = (255, 240, 58, alpha)  # Light yellow with transparency
+    #     glow_surface = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
+    #     pygame.draw.circle(glow_surface, glow_color, (center_x, center_y), i)
+    #     screen.blit(glow_surface, (0, 0))
 
     for y in range(center_y - radius, center_y + radius, 3):
         for x in range(center_x - radius, center_x + radius, 3):
@@ -144,8 +184,8 @@ def draw_planet(radius, rainfall, plant_density, solar_intensity):
                 noise_value = get_noise_value(x, y)  # Performance improvement
                 color = get_terrain_color(noise_value, rainfall, plant_density)
                 pygame.draw.rect(screen, color, (x, y, 3, 3))
-
-
+                
+    draw_clouds(radius, cloud_density)
 #solar 1
 # def draw_planet(radius, rainfall, plant_density):
 #     center_x, center_y = SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2
@@ -268,10 +308,12 @@ while running:
     # rainfall_area = max(0, min(100, dependent_variables.get("rainfall_area", 0)))
     rainfall_area = dependent_variables.get("rainfall_area", 0) / 1000000000
     solar_intensity = dependent_variables.get("solar_intensity") / 100
+    cloud_density = int(dependent_variables.get("cloud_density"))
     # print("rainfall area =", rainfall_area)
-    print("Solar intensity =", solar_intensity)
+    # print("Solar intensity =", solar_intensity)
+    print("Cloud density =", cloud_density)
     # draw_planet(200, plants_density, variables["humidity"])
-    draw_planet(200, plants_density, rainfall_area, solar_intensity)
+    draw_planet(200, plants_density, rainfall_area, solar_intensity, cloud_density)
     # Draw sliders and dependent variables
     for slider in independent_sliders:
         draw_slider(slider["x"], slider["y"], slider["width"], variables[slider["var"]], slider["label"])
