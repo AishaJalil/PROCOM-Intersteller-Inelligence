@@ -170,12 +170,12 @@ def draw_planet(radius, rainfall, plant_density, solar_intensity, cloud_density)
     # Adjust glow intensity based on solar intensity (0 to 100 mapped to 100 to 255)
     max_glow_alpha = min(255, 100 + int(solar_intensity * 1.55))
 
-    # for i in range(radius + 10, radius + 40, 10):  # Gradient extends beyond the planet
-    #     alpha = max(0, max_glow_alpha - (i - radius) * 5)  # Fade effect
-    #     glow_color = (255, 240, 58, alpha)  # Light yellow with transparency
-    #     glow_surface = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
-    #     pygame.draw.circle(glow_surface, glow_color, (center_x, center_y), i)
-    #     screen.blit(glow_surface, (0, 0))
+    for i in range(radius + 10, radius + 40, 10):  # Gradient extends beyond the planet
+        alpha = max(0, max_glow_alpha - (i - radius) * 5)  # Fade effect
+        glow_color = (255, 240, 58, alpha)  # Light yellow with transparency
+        glow_surface = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
+        pygame.draw.circle(glow_surface, glow_color, (center_x, center_y), i)
+        screen.blit(glow_surface, (0, 0))
 
     for y in range(center_y - radius, center_y + radius, 3):
         for x in range(center_x - radius, center_x + radius, 3):
