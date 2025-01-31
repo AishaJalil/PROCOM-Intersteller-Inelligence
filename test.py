@@ -147,21 +147,6 @@ def draw_clouds(radius, cloud_density):
     screen.blit(cloud_surface, (0, 0))
     cloud_noise_offset += variables["wind_speed"] * 0.5  # Increasing speed effect
 
-# def draw_clouds(radius):
-#     global cloud_noise_offset
-#     cloud_surface = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
-
-#     for y in range(center_y - radius, center_y + radius, 5):
-#         for x in range(center_x - radius, center_x + radius, 5):
-#             distance = math.sqrt((x - center_x) ** 2 + (y - center_y) ** 2)
-#             if distance <= radius:
-#                 noise_value = simplex.noise2((x + cloud_noise_offset) / 80, (y + cloud_noise_offset) / 80)
-#                 if noise_value > 0.2:  # Adjust this threshold for cloud density
-#                     pygame.draw.circle(cloud_surface, CLOUD_COLOR, (x, y), 5)
-
-#     screen.blit(cloud_surface, (0, 0))
-#     cloud_noise_offset += 1 
-
 
 #solar2
 def draw_planet(radius, rainfall, plant_density, asi, cloud_density):

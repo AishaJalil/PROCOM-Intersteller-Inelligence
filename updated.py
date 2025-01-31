@@ -5,7 +5,7 @@ import pygame
 from equations import calculate_dependent_variables 
 import os
 import pickle
-import noise  # Adding the noise library for terrain generation
+import noise 
 from opensimplex import OpenSimplex
 import equations
 from functools import lru_cache
@@ -224,12 +224,19 @@ def draw_button(x, y, width, height, text, color, hover_color, is_hovering):
     text_y = y + (height - text_surface.get_height()) // 2
     screen.blit(text_surface, (text_x, text_y))
 
+# Stars configuration
+def draw_stars(num_stars, screen_width, screen_height):
+    for _ in range(num_stars):
+        x = random.randint(0, screen_width)
+        y = random.randint(0, screen_height)
+        size = random.randint(1, 3)  # Star size can vary between 1 and 3 pixels
+        pygame.draw.circle(screen, WHITE, (x, y), size)
 # Main Simulation Loop
 running = True
 dragging_slider = None
 while running:
     screen.fill(BLACK)
-
+    draw_stars(100, SCREEN_WIDTH, SCREEN_HEIGHT) 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
