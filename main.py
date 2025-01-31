@@ -5,7 +5,7 @@ from equations import calculate_dependent_variables
 pygame.init()
 
 # Screen settings
-SCREEN_WIDTH, SCREEN_HEIGHT = 1300, 900
+SCREEN_WIDTH, SCREEN_HEIGHT = 1200, 600
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 pygame.display.set_caption("Planet Habitability Simulation")
 clock = pygame.time.Clock()
