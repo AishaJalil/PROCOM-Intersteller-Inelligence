@@ -1,4 +1,3 @@
-
 import math
 import random
 import pygame
@@ -15,7 +14,8 @@ pygame.init()
 simplex = OpenSimplex(seed=42)
 # Screen settings
 SCREEN_WIDTH, SCREEN_HEIGHT = 1200, 600 
-screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+screenheight = 700
+screen = pygame.display.set_mode((SCREEN_WIDTH, screenheight))
 pygame.display.set_caption("Planet Habitability Simulation")
 clock = pygame.time.Clock()
 
@@ -60,13 +60,15 @@ def save_variables():
 
 # Sliders configuration (left side for independent variables, right side for dependent)
 independent_sliders = [
-    {"x": 50, "y": 100, "width": 300, "var": "temperature", "label": "Temperature (°C)"},
-    {"x": 50, "y": 200, "width": 300, "var": "humidity", "label": "Humidity (%)"},
-    {"x": 50, "y": 300, "width": 300, "var": "wind_speed", "label": "Wind Speed (m/s)"},
-    {"x": 50, "y": 400, "width": 300, "var": "population", "label": "Population"}
+    {"x": 50, "y": 150, "width": 300, "var": "temperature", "label": "Temperature (°C)"},
+    {"x": 50, "y": 250, "width": 300, "var": "humidity", "label": "Humidity (%)"},
+    {"x": 50, "y": 350, "width": 300, "var": "wind_speed", "label": "Wind Speed (m/s)"},
+    {"x": 50, "y": 450, "width": 300, "var": "population", "label": "Population"}
 ]
 
-# Helper function to draw sliders
+
+dependent_variables = equations.calculate_dependent_variables(variables)
+
 def draw_slider(x, y, width, value, label):
     value = max(0, min(100, value))  # Ensure value stays within the 0-100 range
     pygame.draw.rect(screen, WHITE, (x, y + 3, width, 6))  # Background bar
@@ -76,16 +78,15 @@ def draw_slider(x, y, width, value, label):
     screen.blit(text, (x, y - 25))
 
 center_x, center_y = SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2
-# Modified terrain generation function with caching and optimized step size
 previous_terrain = {}
 
 dependent_vars = equations.calculate_dependent_variables(variables)
 
-# rainfall = (dependent_vars["rainfall_intensity"]) / 100
-rainfall = 50 
-# Generate terrain color based on rainfall and plant density
+asi = dependent_variables.get("asi", 0)
+solar_intensity = dependent_variables.get("solar_intensity") / 100
 @lru_cache(maxsize=None)
 def get_terrain_color(noise_value, rainfall, plant_density):
+    
     if noise_value < -0.1:
         # Dry regions
         # return BROWN
@@ -147,22 +148,67 @@ def draw_clouds(radius, cloud_density):
     screen.blit(cloud_surface, (0, 0))
     cloud_noise_offset += variables["wind_speed"] * 0.5  # Increasing speed effect
 
+def draw_shading_overlay(radius, asi):
+    
+    max_darkness = 180  # Max darkness level (0-255)
+    darkness = min(max_darkness, int(asi * 1.8))  # Scale darkness with solar intensity
+
+    # Create a semi-transparent dark layer
+    shading_surface = pygame.Surface((2 * radius, 2 * radius), pygame.SRCALPHA)
+    pygame.draw.circle(shading_surface, (0, 0, 0, darkness), (radius, radius), radius)
+
+    # Blit the shading overlay onto the planet
+    screen.blit(shading_surface, (center_x - radius, center_y - radius))
+
+def solar(radius):
+    max_glow_alpha = min(255, 100 + int(solar_intensity * 1.55))
+
+    glow_r = min(255, 240 + int(solar_intensity * 0.3))  
+    glow_g = min(255, 200 + int(solar_intensity * 0.3))
+    glow_b = min(255, 58 + int(solar_intensity * 0.3))
+
+    glow_color = (glow_r, glow_g, glow_b, max_glow_alpha)
+
+    glow_surface = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
+    
+    glow_outer_radius = radius + 50  # Outer edge of the glow
+    glow_inner_radius = radius + 20  # Inner edge of the glow (cuts out center)
+
+    # Draw outer glow
+    pygame.draw.circle(glow_surface, glow_color, (center_x, center_y), glow_outer_radius)
+
+    # Cut out the center using an inner transparent circle
+    pygame.draw.circle(glow_surface, (0, 0, 0, 0), (center_x, center_y), glow_inner_radius)
+
+    screen.blit(glow_surface, (0, 0))
 
 #solar2
 def draw_planet(radius, rainfall, plant_density, asi, cloud_density):
     center_x, center_y = SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2
+    # # Adjust glow intensity based on solar intensity (0 to 100 mapped to 100 to 255)
+    # max_glow_alpha = min(255, 100 + int(asi * 1.55))
 
-    # Adjust glow intensity based on solar intensity (0 to 100 mapped to 100 to 255)
+    # for i in range(radius + 5, radius + 30, 10):  # Gradient extends beyond the planet
+    #     alpha = max(0, max_glow_alpha - (i - radius) * 5)  # Fade effect
+    #     glow_color = (255,250,255, alpha)
+    #     # (255, 240, 58, alpha)  # Light yellow with transparency
+    #     glow_surface = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
+    #     pygame.draw.circle(glow_surface, glow_color, (center_x, center_y), i)
+    #     screen.blit(glow_surface, (0, 0))
+
     max_glow_alpha = min(255, 100 + int(asi * 1.55))
+
+    glow_r = min(255, 240 + int(asi * 0.3))  
+    glow_g = min(255, 240 + int(asi * 0.3))
+    glow_b = min(255, 240 + int(asi * 0.3))
 
     for i in range(radius + 5, radius + 30, 10):  # Gradient extends beyond the planet
         alpha = max(0, max_glow_alpha - (i - radius) * 5)  # Fade effect
-        glow_color = (255,250,255, alpha)
-        # (255, 240, 58, alpha)  # Light yellow with transparency
+        glow_color = (glow_r, glow_g, glow_b, alpha)
         glow_surface = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
         pygame.draw.circle(glow_surface, glow_color, (center_x, center_y), i)
         screen.blit(glow_surface, (0, 0))
-
+        
     for y in range(center_y - radius, center_y + radius, 3):
         for x in range(center_x - radius, center_x + radius, 3):
             distance = math.sqrt((x - center_x) ** 2 + (y - center_y) ** 2)
@@ -170,39 +216,38 @@ def draw_planet(radius, rainfall, plant_density, asi, cloud_density):
                 noise_value = get_noise_value(x, y)  # Performance improvement
                 color = get_terrain_color(noise_value, rainfall, plant_density)
                 pygame.draw.rect(screen, color, (x, y, 3, 3))
-                
+
+    draw_shading_overlay(radius, asi)
     draw_clouds(radius, cloud_density)
 
 def draw_dynamic_planet(variables):
-    # Base planet settings
+    
     center_x, center_y = SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2
     planet_radius = min(SCREEN_WIDTH, SCREEN_HEIGHT) // 3  # Ensure planet fits within screen
+    rainfall = dependent_variables.get("rainfall_intensity") / 10
 
-    # Draw terrain in a circular shape to maintain planet appearance
     for y in range(center_y - planet_radius, center_y + planet_radius, 3): 
-        for x in range(center_x - planet_radius, center_x + planet_radius, 3):  # Reduced step size for smoothness
-            # Calculate terrain color based on noise
+        for x in range(center_x - planet_radius, center_x + planet_radius, 3):  
+
             distance_from_center = math.sqrt((x - center_x)**2 + (y - center_y)**2)
             if distance_from_center <= planet_radius:
                 noise_value = simplex.noise2(x / 50, y / 50) + 0.5 * simplex.noise2(x / 30, y / 30) + 0.25 * simplex.noise2(x / 10, y / 10) 
                 terrain_color = get_terrain_color(noise_value, rainfall, plants_density)
-                pygame.draw.rect(screen, terrain_color, (x, y, 3, 3))  # Smaller rectangles for smoothness
+                pygame.draw.rect(screen, terrain_color, (x, y, 2, 2))  # Smaller rectangles for smoothness
 
-
-# Draw dependent variables (side bars)
 def draw_dependent_variables(dependent_variables):
-    y_offset = 100
+    y_offset = 80
     bar_width = 250
     x_offset = SCREEN_WIDTH - 350
     vertical_spacing = 30
 
     for key, value in dependent_variables.items():
-        if y_offset + vertical_spacing > SCREEN_HEIGHT - 50:
+        if y_offset + vertical_spacing > screenheight - 50:
             break
         draw_horizontal_bar(x_offset, y_offset, bar_width, value, key)
         y_offset += vertical_spacing
 
-# Helper function for dependent variable bars
+
 def draw_horizontal_bar(x, y, width, value, label):
     bar_height = 5
     bar_value = int(min(width, max(0, (value / 100) * width)))
@@ -211,7 +256,7 @@ def draw_horizontal_bar(x, y, width, value, label):
     text = font.render(f"{label}: {value:.2f}", True, WHITE)
     screen.blit(text, (x, y - 20))
 
-# Reset function
+
 def reset_variables():
     global variables
     variables = default_variables.copy()
@@ -224,19 +269,42 @@ def draw_button(x, y, width, height, text, color, hover_color, is_hovering):
     text_y = y + (height - text_surface.get_height()) // 2
     screen.blit(text_surface, (text_x, text_y))
 
-# Stars configuration
-def draw_stars(num_stars, screen_width, screen_height):
-    for _ in range(num_stars):
-        x = random.randint(0, screen_width)
-        y = random.randint(0, screen_height)
-        size = random.randint(1, 3)  # Star size can vary between 1 and 3 pixels
-        pygame.draw.circle(screen, WHITE, (x, y), size)
-# Main Simulation Loop
+num_stars = 120
+stars = [(random.randint(0, SCREEN_WIDTH), random.randint(0, screenheight), random.uniform(0.5, 2), random.randint(1, 3)) for _ in range(num_stars)]
+
+def draw_stars():
+    for i in range(len(stars)):
+        x, y, speed, size = stars[i]
+        
+        # Twinkle effect: Randomly change star brightness
+        if random.random() < 0.08:  # 5% chance to change size each frame
+            size = random.randint(1, 3)
+        
+        pygame.draw.circle(screen, WHITE, (int(x), y), size)
+
+        # Move sideways and wrap around
+        x = (x + 1) % SCREEN_WIDTH
+        stars[i] = (x, y, speed, size)  # U
+
+# def draw_small_planets():
+#     small_planets = [
+#         {"x": SCREEN_WIDTH // 7, "y": SCREEN_HEIGHT // 18, "radius": 30, "color": (180, 180, 180)},
+#         {"x": 3 * SCREEN_WIDTH // 4, "y": SCREEN_HEIGHT // 4, "radius": 40, "color": (160, 160, 160)}
+#     ]
+
+#     for planet in small_planets:
+#         pygame.draw.circle(screen, planet["color"], (planet["x"], planet["y"]), planet["radius"])
+       
+
+
+
 running = True
 dragging_slider = None
 while running:
     screen.fill(BLACK)
-    draw_stars(100, SCREEN_WIDTH, SCREEN_HEIGHT) 
+    draw_stars() 
+    # solar(200) 
+    # draw_small_planets()
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
@@ -275,7 +343,8 @@ while running:
     cloud_density = int(dependent_variables.get("cloud_density"))
     # print("rainfall area =", rainfall_area)
     # print("Solar intensity =", solar_intensity)
-    print("Cloud density =", cloud_density)
+    rainfall_intensity = dependent_variables.get("rainfall_intensity", 0)
+    print("rainfall density =", rainfall_intensity)
     # draw_planet(200, plants_density, variables["humidity"])
     # draw_planet(200, plants_density, rainfall_area, solar_intensity, cloud_density)
     draw_planet(200, plants_density, rainfall_area, asi, cloud_density)
