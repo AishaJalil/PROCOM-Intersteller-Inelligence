@@ -147,16 +147,18 @@ def draw_clouds(radius, cloud_density):
     screen.blit(cloud_surface, (0, 0))
     cloud_noise_offset += variables["wind_speed"] * 0.5  # Increasing speed effect
 
+
 #solar2
-def draw_planet(radius, rainfall, plant_density, solar_intensity, cloud_density):
+def draw_planet(radius, rainfall, plant_density, asi, cloud_density):
     center_x, center_y = SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2
 
     # Adjust glow intensity based on solar intensity (0 to 100 mapped to 100 to 255)
-    max_glow_alpha = min(255, 100 + int(solar_intensity * 1.55))
+    max_glow_alpha = min(255, 100 + int(asi * 1.55))
 
-    for i in range(radius + 10, radius + 40, 10):  # Gradient extends beyond the planet
+    for i in range(radius + 5, radius + 30, 10):  # Gradient extends beyond the planet
         alpha = max(0, max_glow_alpha - (i - radius) * 5)  # Fade effect
-        glow_color = (255, 240, 58, alpha)  # Light yellow with transparency
+        glow_color = (255,250,255, alpha)
+        # (255, 240, 58, alpha)  # Light yellow with transparency
         glow_surface = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
         pygame.draw.circle(glow_surface, glow_color, (center_x, center_y), i)
         screen.blit(glow_surface, (0, 0))
@@ -171,7 +173,6 @@ def draw_planet(radius, rainfall, plant_density, solar_intensity, cloud_density)
                 
     draw_clouds(radius, cloud_density)
 
-# Function to draw dynamic planet (centered and with proper size)
 def draw_dynamic_planet(variables):
     # Base planet settings
     center_x, center_y = SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2
@@ -262,13 +263,15 @@ while running:
     plants_density = max(0, min(100, dependent_variables.get("plants_density", 0))) #subtract pollution to make it darker based on pollution levels
     # rainfall_area = max(0, min(100, dependent_variables.get("rainfall_area", 0)))
     rainfall_area = dependent_variables.get("rainfall_area", 0) / 1000000000
+    asi = dependent_variables.get("asi") / 100
     solar_intensity = dependent_variables.get("solar_intensity") / 100
     cloud_density = int(dependent_variables.get("cloud_density"))
     # print("rainfall area =", rainfall_area)
     # print("Solar intensity =", solar_intensity)
     print("Cloud density =", cloud_density)
     # draw_planet(200, plants_density, variables["humidity"])
-    draw_planet(200, plants_density, rainfall_area, solar_intensity, cloud_density)
+    # draw_planet(200, plants_density, rainfall_area, solar_intensity, cloud_density)
+    draw_planet(200, plants_density, rainfall_area, asi, cloud_density)
     # Draw sliders and dependent variables
     for slider in independent_sliders:
         draw_slider(slider["x"], slider["y"], slider["width"], variables[slider["var"]], slider["label"])
