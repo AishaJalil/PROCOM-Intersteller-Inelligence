@@ -32,13 +32,15 @@ def calculate_dependent_variables(variables):
     solar_intensity = k1 * humidity * temperature
     cloud_density = (humidity**2) / max(temperature, 1)  # Avoid division by zero
     photosynthesis = solar_intensity * math.cos(math.radians(cloud_density))
+    # photosynthesis = solar_intensity * (0.5 + 0.5 * math.cos((cloud_density)))
     oxygen = k2 * photosynthesis - k3 * population
     carbon_dioxide = k4 * population - k5 * photosynthesis
+    # carbon_dioxide = 1.5 * population - 0.005 * photosynthesis
     asi = math.sqrt(oxygen**2 + carbon_dioxide**2)
     rainfall_intensity = k6 * humidity * temperature * (1 + wind_speed / 100)
     radius_of_wet_ground = rainfall_intensity * wind_speed
     rainfall_area = math.pi * radius_of_wet_ground**2
-    solar_intensity_slope = cloud_density + 1 / max(cloud_density, 1)  # Avoid division by zero
+    # solar_intensity_slope = cloud_density + 1 / max(cloud_density, 1)  # Avoid division by zero
     power = solar_intensity**2 + wind_speed
     uv_index = k7 * solar_intensity * temperature
     pollution = k8 * population - k9 * wind_speed
@@ -53,14 +55,14 @@ def calculate_dependent_variables(variables):
     return {
         "solar_intensity": solar_intensity,
         "cloud_density": cloud_density,
-        "photosynthesis": photosynthesis,
-        "oxygen": max(0, oxygen),  # Ensure non-negative oxygen
-        "carbon_dioxide": max(0, carbon_dioxide),  # Ensure non-negative carbon dioxide
+        "photosynthesis": int(photosynthesis),
+        "oxygen": oxygen,  # Ensure non-negative oxygen
+        "carbon_dioxide": carbon_dioxide,  # Ensure non-negative carbon dioxide
         "asi": asi,
         "rainfall_intensity": rainfall_intensity,
         "radius_of_wet_ground": radius_of_wet_ground,
         "rainfall_area": rainfall_area,
-        "solar_intensity_slope": solar_intensity_slope,
+        # "solar_intensity_slope": solar_intensity_slope,
         "power": power,
         "uv_index": uv_index,
         "pollution": pollution,
@@ -71,3 +73,4 @@ def calculate_dependent_variables(variables):
         "water_resources": water_resources,
         "thirst": thirst
     }
+
