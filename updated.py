@@ -327,7 +327,7 @@ while running:
             value = max(0, min(100, (relative_x / width) * 100))
             variables[var] = value
 
-    dependent_variables = calculate_dependent_variables(variables)
+    # dependent_variables = calculate_dependent_variables(variables)
 
     # Draw the planet and terrain
     # draw_dynamic_planet(variables)
