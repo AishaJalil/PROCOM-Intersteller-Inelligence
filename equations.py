@@ -31,8 +31,8 @@ def calculate_dependent_variables(variables):
     # Dependent variables calculations
     solar_intensity = k1 * humidity * temperature
     cloud_density = (humidity**2) / max(temperature, 1)  # Avoid division by zero
-    photosynthesis = solar_intensity * math.cos(math.radians(cloud_density))
-    # photosynthesis = solar_intensity * (0.5 + 0.5 * math.cos((cloud_density)))
+    # photosynthesis = solar_intensity * math.cos(math.radians(cloud_density))
+    photosynthesis = solar_intensity * (0.5 + 0.5 * math.cos((cloud_density)))
     oxygen = k2 * photosynthesis - k3 * population
     carbon_dioxide = k4 * population - k5 * photosynthesis
     # carbon_dioxide = 1.5 * population - 0.005 * photosynthesis

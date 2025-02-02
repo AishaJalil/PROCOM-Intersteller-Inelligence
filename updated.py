@@ -132,8 +132,6 @@ def draw_clouds(radius, cloud_density):
     global cloud_noise_offset
     cloud_surface = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
 
-    # Adjust the radius of the clouds based on cloud density
-    # adjusted_radius = radius * (cloud_density / 100)
     adjusted_radius = min(radius * (cloud_density / 100), planet_radius)  # Ensure cloud radius doesn't exceed planet radius
 
     # for y in range(center_y - adjusted_radius, center_y + adjusted_radius, 5):
@@ -210,20 +208,6 @@ def draw_planet(radius, rainfall, plant_density, asi, cloud_density):
     draw_shading_overlay(radius, asi)
     draw_clouds(radius, cloud_density)
 
-# def draw_dynamic_planet(variables):
-    
-#     center_x, center_y = SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2
-#     planet_radius = min(SCREEN_WIDTH, SCREEN_HEIGHT) // 3  # Ensure planet fits within screen
-#     rainfall = dependent_variables.get("rainfall_intensity") / 10
-
-#     for y in range(center_y - planet_radius, center_y + planet_radius, 3): 
-#         for x in range(center_x - planet_radius, center_x + planet_radius, 3):  
-
-#             distance_from_center = math.sqrt((x - center_x)**2 + (y - center_y)**2)
-#             if distance_from_center <= planet_radius:
-#                 noise_value = simplex.noise2(x / 50, y / 50) + 0.5 * simplex.noise2(x / 30, y / 30) + 0.25 * simplex.noise2(x / 10, y / 10) 
-#                 terrain_color = get_terrain_color(noise_value, rainfall, plants_density)
-#                 pygame.draw.rect(screen, terrain_color, (x, y, 2, 2))  # Smaller rectangles for smoothness
 
 def draw_dependent_variables(dependent_variables):
     y_offset = 80
@@ -317,11 +301,6 @@ while running:
             value = max(0, min(100, (relative_x / width) * 100))
             variables[var] = value
 
-    # dependent_variables = calculate_dependent_variables(variables)
-
-    # Draw the planet and terrain
-    # draw_dynamic_planet(variables)
-
     dependent_variables = equations.calculate_dependent_variables(variables)
 
     plants_density = max(0, min(100, dependent_variables.get("plants_density", 0))) #subtract pollution to make it darker based on pollution levels
@@ -331,7 +310,6 @@ while running:
     cloud_density = int(dependent_variables.get("cloud_density"))
     rainfall_intensity = dependent_variables.get("rainfall_intensity", 0)
 
-    # draw_planet(200, plants_density, rainfall_area, asi, cloud_density)
     draw_planet(200, rainfall_area,plants_density, asi, cloud_density)
     # Draw sliders and dependent variables
     for slider in independent_sliders:
