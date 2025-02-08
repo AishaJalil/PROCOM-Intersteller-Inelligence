@@ -529,6 +529,7 @@ def draw_shading_overlay(radius, solar_intensity):
 def solar(radius):
     max_glow_alpha = min(255, 100 + int(solar_intensity * 1.55))
 
+
     glow_r = min(255, 240 + int(solar_intensity * 0.3))  
     glow_g = min(255, 200 + int(solar_intensity * 0.3))
     glow_b = min(255, 58 + int(solar_intensity * 0.3))

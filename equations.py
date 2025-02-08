@@ -174,6 +174,7 @@ def clamp(value, min_val, max_val):
         return max_val
     return value
 
+
 def calculate_temperature(humidity, solar_intensity):
     temp = 0.02 * humidity + solar_intensity
     if temp < 0.0:
