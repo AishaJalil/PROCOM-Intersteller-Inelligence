@@ -1,12 +1,5 @@
 import math
 
-def clamp(value, min_val, max_val):
-    if value < min_val:
-        return min_val
-    if value > max_val:
-        return max_val
-    return value
-
 def calculate_temperature(humidity, solar_intensity):
     temp = 0.02 * humidity + solar_intensity
     if temp < 0.0:
@@ -151,6 +144,12 @@ def calculate_thirst(population, rainfall_area):
         return 100.0
     return thirst
 
+def calculate_albedo(cloud_density):
+    albedo = cloud_density+ (1/cloud_density)
+    if albedo < 0.0:
+        return 0
+    return albedo
+
 def calculate_dependent_variables(variables):
     solar_intensity = variables["solar_intensity"]
     humidity = variables["humidity"]
@@ -175,26 +174,28 @@ def calculate_dependent_variables(variables):
     hunger = calculate_hunger(population, crop_yield)
     water_resources = calculate_water_resources(rainfall_intensity, wind_speed, population)
     thirst = calculate_thirst(population, rainfall_area)
-    
+    albedo = calculate_albedo(cloud_density)
+
     return {
-        "temperature": int(temperature),
-        "cloud_density": int(cloud_density),
-        "photosynthesis": int(photosynthesis),
-        "oxygen": int(oxygen),  
-        "carbon_dioxide": int(carbon_dioxide), 
-        "asi": int(asi),
-        "rainfall_intensity": int(rainfall_intensity),
-        "radius_of_wet_ground": int(radius_of_wet_ground),
-        "rainfall_area": int(rainfall_area),
-        "power": int(power),
-        "uv_index": int(uv_index),
-        "pollution": int(pollution),
-        "health_risk": int(health_risk),
-        "plants_density": int(plants_density),
-        "crop_yield": int(crop_yield),
-        "hunger": int(hunger),
-        "water_resources": int(water_resources),
-        "thirst": int(thirst)
+        "Temperature (C)": int(temperature),
+        "Cloud Density": int(cloud_density),
+        "Photosynthesis": int(photosynthesis),
+        "Oxygen": int(oxygen),  
+        "Carbon Dioxide": int(carbon_dioxide), 
+        "ASI": int(asi),
+        "Rainfall Intensity": int(rainfall_intensity),
+        "Radius of wet ground": int(radius_of_wet_ground),
+        "Rainfall Area": int(rainfall_area),
+        "Power": int(power),
+        "UV index": int(uv_index),
+        "Pollution": int(pollution),
+        "Health Risk": int(health_risk),
+        "Plants Density": int(plants_density),
+        "Crop Yield": int(crop_yield),
+        "Hunger": int(hunger),
+        "Water Resources": int(water_resources),
+        "Thirst": int(thirst),
+        "Albedo": int(cloud_density)
     }
 
 
